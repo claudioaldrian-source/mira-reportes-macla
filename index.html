@@ -252,15 +252,11 @@
 
 .header {
   display: flex;
+  flex-direction: column;   /* 🔥 clave: centrado */
   align-items: center;
+  text-align: center;
   justify-content: space-between;
   margin-bottom: 5px;
-}
-
-@media (max-width: 600px) {
-  .logo {
-    height: 50px;
-  }
 }
 
 .header-text {
@@ -319,17 +315,6 @@
   background: #5a6268;
 }
 
-@media (max-width: 600px) {
-
-  .descripcion-con-audio {
-    flex-direction: column;
-  }
-
-  .btn-audio {
-    width: 100%;
-  }
-}
-
 .urgencia-muerto {
   background: #eeeeee;
   color: #000;
@@ -365,7 +350,7 @@
   }
 
   .logo2 {
-    height: 60px;
+    height: 70px;
   }
 
   .mini-banner {
@@ -373,12 +358,22 @@
     height: 50px;
   }
 .titulo-principal {
-    font-size: 20px;
+    font-size: 22px;
   }
 .subtitulo {
-    font-size: 11px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+
+  .descripcion-con-audio {
+    flex-direction: column;
   }
 
+  .btn-audio {
+    width: 100%;
+  }
 }
 
 .fila-descripcion {
@@ -505,26 +500,17 @@
 
 <div class="header">
 
-  <!-- IZQUIERDA -->
-  <div class="header-left">
-    <img src="logo-mia.png" class="logo2">
+  <img src="logo-mia.png" class="logo2">
+
+  <div class="titulo-principal">
+    <span class="letra m">M</span>
+    <span class="letra i">I</span>
+    <span class="letra r">R</span>
+    <span class="letra a">A</span>
   </div>
 
-  <!-- DERECHA -->
-  <div class="header-right">
-
-    <div class="titulo-principal">
-      <span class="letra m">M</span>
-      <span class="letra i">I</span>
-      <span class="letra r">R</span>
-      <span class="letra a">A</span>
-    </div>
-
-    <div class="subtitulo">
-      Mi Reporte<br>
-      Avellaneda
-    </div>
-
+  <div class="subtitulo">
+    Mi Reporte Avellaneda
   </div>
 
 </div>
