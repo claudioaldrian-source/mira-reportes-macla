@@ -529,7 +529,7 @@
     </button>
   </div>
 
-  <textarea id="descripcion" placeholder="Ej: Àrbol caìdo sobre la calle..."></textarea>
+  <textarea id="descripcion" placeholder="Ej: Árbol caído en la calle..."></textarea>
 
   <div id="audioPreview"></div>
 
@@ -800,13 +800,13 @@ try {
     const filePath = `reportes/${fileName}`;
 
     const { data: uploadData, error: uploadError } = await supabaseClient.storage
-      .from('fauna-media')
+      .from('mira-media')
       .upload(filePath, mediaFile);
 
     if (uploadError) throw uploadError;
 
     const { data: urlData } = supabaseClient.storage
-      .from('fauna-media')
+      .from('mira-media')
       .getPublicUrl(filePath);
 
     mediaUrl = urlData.publicUrl;
@@ -821,13 +821,13 @@ try {
     const filePath = `reportes/${fileName}`;
 
     const { data: uploadData, error: uploadError } = await supabaseClient.storage
-      .from('fauna-media')
+      .from('mira-media')
       .upload(filePath, audioFile);
 
     if (uploadError) throw uploadError;
 
     const { data: urlData } = supabaseClient.storage
-      .from('fauna-media')
+      .from('mira-media')
       .getPublicUrl(filePath);
 
     audioUrl = urlData.publicUrl;
@@ -837,7 +837,7 @@ try {
     // GUARDAR REPORTE EN LA BASE DE DATOS
     // ============================================
 const { data, error } = await supabaseClient
-  .from('reportes-fauna')
+  .from('reportes-mira')
   .insert([
     {
       tipo_animal: document.getElementById('tipoAnimal').value,
@@ -872,7 +872,7 @@ console.log("ID guardado:", idReporte);
     // ============================================
     // ÉXITO
     // ============================================
-    mostrarAlerta('✅ ¡Reporte enviado correctamente! Guardafauna lo recibirá pronto.', 'success');
+    mostrarAlerta('✅ ¡Reporte enviado correctamente! El operador lo recibirá pronto.', 'success');
     
       // Limpiar formulario
 	document.getElementById('reporteForm').reset();
@@ -990,7 +990,7 @@ supabaseClient
     {
       event: 'UPDATE',
       schema: 'public',
-      table: 'reportes-fauna'
+      table: 'reportes_mira'
     },
     (payload) => {
 
