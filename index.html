@@ -250,14 +250,6 @@
       font-weight: 600;
     }
 
-.header {
-  display: flex;
-  flex-direction: column;   /* 🔥 clave: centrado */
-  align-items: center;
-  text-align: center;
-  justify-content: space-between;
-  margin-bottom: 5px;
-}
 
 .header-text {
   text-align: center;
@@ -418,13 +410,13 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-
 .header {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;   /* 🔥 clave: centrado */
   align-items: center;
-  margin-bottom: 10px;
-  gap: 10px;
+  text-align: center;
+  justify-content: space-between;
+  gap: 0px;
 }
 
 /* IZQUIERDA */
@@ -438,14 +430,15 @@
   color: red;
   font-size: 25px;
   font-weight: bold;
- filter: brightness(1.1) contrast(1.1);
+  filter: brightness(1.1) contrast(1.1);
 }
 
 /* LOGO */
 
 
 .logo2 {
-  height: 90px;
+  height: 110px;
+  margin-bottom: -8px;    /* 🔥 eliminar separación */
   flex-shrink: 0;
   padding: 0;
   filter: brightness(1.1) contrast(1.1);
@@ -458,31 +451,23 @@
   align-items: flex-start;
 }
 
-.titulo-principal {
-  color: red;
-  font-size: 22px;
-  padding: 1px 55px;
-  font-weight: bold;
-  display: flex;
-  padding: 0;
-  gap: 4px;
-  filter: brightness(1.1) contrast(1.1);
-}
-
 .subtitulo {
   color: red;
-  font-size: 12px;
+  font-size: 16px;
+  margin: 0;           /* 🔥 clave */
   line-height: 1.2;
   padding: 0;
 }
 
 .letra {
   font-weight: bold;
-  font-size: 35px;
+  font-size: 40px;
+  margin: 0;
+  line-height: 1;
 }
 
 /* Colores por letra */  
-.letra.m { color: #00BCD4; }   /* celeste */
+.letra.m { color: #00BCD4; filter: brightness(1.1) contrast(1.1); }   /* celeste */
 .letra.i { color: blue; }   /* azul */
 .letra.r { color: green; }   /* verde */
 .letra.a { color: #F44336; }   /* rojo */
