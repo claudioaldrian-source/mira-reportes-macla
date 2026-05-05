@@ -837,24 +837,23 @@ try {
     // GUARDAR REPORTE EN LA BASE DE DATOS
     // ============================================
 const { data, error } = await supabaseClient
-  .from('reportes-mira')
+  .from('reportes_mia')
   .insert([
     {
-      tipo_animal: document.getElementById('tipoAnimal').value,
+      tipo_reporte: document.getElementById('tipoReporte').value,
       descripcion: document.getElementById('descripcion').value,
-      urgencia: document.getElementById('urgencia').value,
-      nombre_reportante: document.getElementById('nombre').value || null,
+      nombre: document.getElementById('nombre').value || null,
       telefono: document.getElementById('telefono').value || null,
       lat: lat,
       lon: lon,
       media_url: mediaUrl,
-      audio_url: audioUrl,  // ← NUEVO CAMPO
+      audio_url: audioUrl,
       media_tipo: mediaType || null,
       estado: 'pendiente',
       fecha: new Date().toISOString()
     }
   ])
-   .select(); // 👈 ESTO ES CLAVE;
+  .select();
 
 if (error) {
   alert("Error al enviar reporte");
