@@ -837,7 +837,7 @@ try {
     // GUARDAR REPORTE EN LA BASE DE DATOS
     // ============================================
 const { data, error } = await supabaseClient
-  .from('reportes_mia')
+  .from('reportes_mira')
   .insert([
     {
       tipo_reporte: document.getElementById('tipoReporte').value,
