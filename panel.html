@@ -313,8 +313,8 @@
   background: white;
   box-shadow: 0 2px 5px rgba(0,0,0,0.15);
 }
-
-    .btn-mini:hover {
+ 
+  .btn-mini:hover {
   transform: scale(1.15);   /* 👈 más efecto */
   box-shadow: 0 4px 10px rgba(0,0,0,0.25);
 }
@@ -731,14 +731,6 @@ transform: scale(1.5);   /* 🔥 agranda solo la A */
   }
 }
 
-.btn-mini {
-  padding: 3px 6px;
-  font-size: 12px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  background: #e0e0e0;
-}
 
 .reporte-header {
   display: flex;
@@ -1260,7 +1252,7 @@ const PASSWORD_CORRECTA = '20'; // ⚠️ CAMBIÁ ESTA CONTRASEÑA
 // ============================================
 let todosLosReportes = [];
 let reportesMostrados = [];
-
+let ultimoIdVisto = 0;
 // ============================================
 // LOGIN
 // ============================================
@@ -1270,7 +1262,7 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
   const password = document.getElementById('passwordInput').value;
   
   if (password === PASSWORD_CORRECTA) {
-    sessionStorage.setItem('guardafauna_logged_in', 'true');
+    sessionStorage.setItem('reportemira_logged_in', 'true');
     mostrarPanel();
   } else {
     const errorDiv = document.getElementById('loginError');
@@ -1324,7 +1316,17 @@ async function cargarReportes() {
 
     if (error) throw error;
 
-    todosLosReportes = data || [];
+    const nuevos = data.filter(r => r.id > ultimoIdVisto);
+
+if (nuevos.length > 0 && ultimoIdVisto !== 0) {
+  sonarBeep(); // 🔊 sonido
+}
+
+if (data.length > 0) {
+  ultimoIdVisto = Math.max(...data.map(r => r.id));
+}
+
+todosLosReportes = data || [];
     aplicarFiltros();
     actualizarEstadisticas();
 
@@ -1342,24 +1344,36 @@ async function cargarReportes() {
 // ============================================
 // SUSCRIBIRSE A CAMBIOS EN TIEMPO REAL
 // ============================================
+let canalReportes = null;
+
 function suscribirseACambios() {
-  supabaseClient
+
+  // 👇 evita múltiples suscripciones
+  if (canalReportes) return;
+
+  canalReportes = supabaseClient
     .channel('reportes-channel')
-    .on('postgres_changes', 
-      { event: '*', schema: 'public', table: 'reportes_mira' },
+
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'reportes_mira'
+      },
+
       (payload) => {
+
         console.log('Cambio detectado:', payload);
-        
-     // 👇 SOLUCIÓN
+
         cargarReportes();
 
-   setTimeout(() => {
-  aplicarFiltros();
-  actualizarEstadisticas();
-}, 300);
       }
     )
-    .subscribe();
+
+    .subscribe((status) => {
+      console.log('Estado realtime:', status);
+    });
 }
 
 // ============================================
@@ -1509,6 +1523,26 @@ const ubicacion = `
 
     const tr = document.createElement("tr");
 
+ let acciones = `
+  <button onclick="abrirMapa(${r.lat}, ${r.lon})" class="btn-mini-tabla">📍</button>
+`;
+
+if (r.estado === "pendiente") {
+  acciones += `
+    <button onclick="cambiarEstado(${r.id}, 'en-proceso')" class="btn-mini-tabla" title="Marcar en proceso">
+      📩
+    </button>
+  `;
+}
+
+if (r.estado === "en-proceso") {
+  acciones += `
+    <button onclick="cambiarEstado(${r.id}, 'completado')" class="btn-mini-tabla" title="Marcar completado">
+      ✅
+    </button>
+  `;
+}
+
     tr.innerHTML = `
       <td>
   ${reportesMostrados.length - index}
@@ -1552,23 +1586,13 @@ const ubicacion = `
 
       <td>${media}</td>
 
-      <td>
-        <button onclick="abrirMapa(${r.lat}, ${r.lon})" class="btn-mini-tabla">📍</button>
-
-        ${r.estado === "pendiente" ? `
-          <button onclick="cambiarEstado(${r.id}, 'en-proceso')" class="btn-mini-tabla">📩</button>
-        ` : ""}
-
-        ${r.estado === "en-proceso" ? `
-          <button onclick="cambiarEstado(${r.id}, 'completado')" class="btn-mini-tabla">✅</button>
-        ` : ""}
-      </td>
-    `;
+     <td>${acciones}</td>`;
 
 
-   tbody.appendChild(tr);
+ tbody.appendChild(tr);
 
 // ubicación automática
+/*
 if (r.lat && r.lon) {
   obtenerDireccion(r.lat, r.lon).then(async dir => {
 
@@ -1586,6 +1610,7 @@ if (r.lat && r.lon) {
 
   });
 }
+*/
 
 }); // 👈 👈 👈 ESTA LÍNEA FALTABA
 
@@ -1607,29 +1632,54 @@ function getTipoReporte(tipo) {
 }
 
 function abrirMapa(lat, lon) {
-  window.open(`https://www.google.com/maps?q=${lat},${lon}`, '_blank');
+  if (!lat || !lon) {
+    alert("Ubicación no disponible");
+    return;
+  }
+
+  const url = `https://www.google.com/maps?q=${lat},${lon}`;
+
+  // 👇 FORZAR apertura segura
+  const a = document.createElement("a");
+  a.href = url;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  a.click();
 }
 
 // ============================================
 // CAMBIAR ESTADO DE REPORTE
 // ============================================
 async function cambiarEstado(id, nuevoEstado) {
+
+  console.log("CLICK botón:", id, nuevoEstado);
+
   try {
-    const { error } = await supabaseClient
+
+    const { data, error } = await supabaseClient
       .from('reportes_mira')
-      .update({ 
+      .update({
         estado: nuevoEstado
       })
-      .eq('id', id);
+      .eq('id', id)
+      .select();
+
+    console.log("RESPUESTA:", data, error);
 
     if (error) throw error;
 
+    // 🔄 recargar tabla
     cargarReportes();
 
   } catch (error) {
+
+    console.error("ERROR UPDATE:", error);
+
     alert('Error al actualizar estado: ' + error.message);
   }
 }
+
+
 
 setInterval(() => {
   cargarReportes();
@@ -1862,6 +1912,11 @@ function obtenerZonaTexto(lat, lon) {
   if (lat < -29.11 && lon < -59.65) return "Barrio Centro";
   if (lat < -29.12) return "Zona Sur";
   return "Avellaneda";
+}
+
+function sonarBeep() {
+  const audio = new Audio("https://www.soundjay.com/buttons/sounds/beep-01a.mp3");
+  audio.play();
 }
 
 </script>
