@@ -1523,25 +1523,7 @@ const ubicacion = `
 
     const tr = document.createElement("tr");
 
- let acciones = `
-  <button onclick="abrirMapa(${r.lat}, ${r.lon})" class="btn-mini-tabla">📍</button>
-`;
 
-if (r.estado === "pendiente") {
-  acciones += `
-    <button onclick="cambiarEstado(${r.id}, 'en-proceso')" class="btn-mini-tabla" title="Marcar en proceso">
-      📩
-    </button>
-  `;
-}
-
-if (r.estado === "en-proceso") {
-  acciones += `
-    <button onclick="cambiarEstado(${r.id}, 'completado')" class="btn-mini-tabla" title="Marcar completado">
-      ✅
-    </button>
-  `;
-}
 
     tr.innerHTML = `
       <td>
@@ -1586,10 +1568,33 @@ if (r.estado === "en-proceso") {
 
       <td>${media}</td>
 
-     <td>${acciones}</td>`;
+      <td>
+        <button class="btn-mini-tabla btn-mapa" data-lat="${r.lat}" data-lon="${r.lon}">📍</button>
+        ${r.estado === "pendiente" ? `<button class="btn-mini-tabla btn-estado" data-id="${r.id}" data-nuevo-estado="en-proceso">📩</button>` : ""}
+        ${r.estado === "en-proceso" ? `<button class="btn-mini-tabla btn-estado" data-id="${r.id}" data-nuevo-estado="completado">✅</button>` : ""}
+      </td>`;
 
 
  tbody.appendChild(tr);
+
+ // ✅ AGREGAR EVENT LISTENERS DESPUÉS DE INSERTAR
+ const btnMapa = tr.querySelector('.btn-mapa');
+ if (btnMapa) {
+   btnMapa.addEventListener('click', function() {
+     const lat = this.getAttribute('data-lat');
+     const lon = this.getAttribute('data-lon');
+     abrirMapa(lat, lon);
+   });
+ }
+
+ const btnEstado = tr.querySelector('.btn-estado');
+ if (btnEstado) {
+   btnEstado.addEventListener('click', function() {
+     const id = this.getAttribute('data-id');
+     const nuevoEstado = this.getAttribute('data-nuevo-estado');
+     cambiarEstado(id, nuevoEstado);
+   });
+ }
 
 // ubicación automática
 /*
