@@ -96,17 +96,7 @@
       display: none;
     }
 
-    .header {
-      background: white;
-      padding: 5px 20px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-
+   
     .header-logos {
       display: flex;
       align-items: center;
@@ -153,7 +143,7 @@
     /* ============================================ */
     /* FILTROS Y ESTADÍSTICAS */
     /* ============================================ */
-    .controls {
+  .controls {
   background: #f5f7fa;
   padding: 4px;       /* un poco menos */
   margin: 5px;
@@ -375,6 +365,58 @@
       flex: 1;
     }
 
+    /* ============================================ */
+    /* VISOR DE IMÁGENES/VIDEO/AUDIO */
+    /* ============================================ */
+    #visorImagen {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #contenidoVisor {
+      max-width: 90%;
+      max-height: 90%;
+      position: relative;
+    }
+
+ 
+
+#contenidoVisor img,
+#contenidoVisor video {
+  max-width: 90%;
+  max-height: calc(100vh - 150px); /* 👈 evita header */
+  border-radius: 10px;
+cursor: grab;
+  transition: transform 0.1s ease;
+}
+
+
+
+.cerrar {
+  position: fixed;
+  top: 150px;   /* 👈 debajo del header */
+  right: 150px;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  font-size: 22px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 10000;
+}
+    .cerrar:hover {
+      transform: scale(1.2);
+      color: #ff5555;
+    }
+
     .reporte-media {
       margin: 15px 0;
       text-align: center;
@@ -520,16 +562,20 @@ transform: scale(1.5);   /* 🔥 agranda solo la A */
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 35px;
+  justify-content: space-between;  
   padding: 0px 10px;
   position: relative;
   top: 0;
   z-index: 1000;
   background: white;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  min-height: 80px; /* 👈 evita que se pisen */
-}
+  min-height: 80px; /* 👈 evita que se pisen */          
+  flex-wrap: wrap;
+  gap: 15px;
+  position: sticky;   /* 🔥 CLAVE */
+  top: 0;
+  z-index: 1000;
+    }
 
 /* TÍTULO */
  .header-title {
@@ -797,34 +843,27 @@ transform: scale(1.3);   /* 🔥 agranda solo la A */
 .visor-modal {
   display: none;
   position: fixed;
-  z-index: 9999;
-  inset: 0; /* 👈 mejor que top/left/width/height */
+  inset: 0;
   background: rgba(0,0,0,0.85);
+  z-index: 9999;
 
-  align-items: center;
+  display: flex;
   justify-content: center;
+  align-items: flex-start; /* 👈 BAJA TODO */
+
+  padding-top: 120px; /* 👈 CLAVE */
 }
 
 .visor-modal img {
   max-width: 90%;
-  max-height: 80%;
+  max-height: 80vh;
   border-radius: 10px;
   cursor: grab;
   transition: transform 0.2s;
+
 }
 
-.cerrar {
-  position: fixed;
-  top: 15px;
-  right: 20px;
-  background: rgba(0,0,0,0.7);
-  color: white;
-  font-size: 22px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 10000;
-}
+
 
 .tabla-scroll {
   height: calc(100vh - 220px);
@@ -956,6 +995,7 @@ align-items: center;
   margin: 0;
   line-height: 1;
 }
+
 
   </style>
 </head>
@@ -1280,7 +1320,7 @@ async function cargarReportes() {
     const { data, error } = await supabaseClient
       .from('reportes_mira')
       .select('*')
-      .order('id', { ascending: false });
+      .order('fecha', { ascending: false });
 
     if (error) throw error;
 
@@ -1355,7 +1395,7 @@ function aplicarFiltros() {
       cumple = false;
     }
 
-    if (filtroCategoria !== 'todos' && reporte.tipo_reporte !== filtroCategoria) {
+    if (filtroCategoria !== 'todos' && reporte.categoria !== filtroCategoria) {
       cumple = false;
     }
 
@@ -1470,7 +1510,10 @@ const ubicacion = `
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
-      <td>${r.id}</td>
+      <td>
+  ${reportesMostrados.length - index}
+  ${index === 0 ? '<span class="new-badge">Nuevo</span>' : ''}
+</td>
       <td>${fecha}</td>
       <td>${hora}</td>
       <td>${tiempo}</td>
@@ -1496,7 +1539,7 @@ const ubicacion = `
 </td>
 
       <td>${ubicacion}</td>
-      <td>${r.zona || "-"}</td>
+      <td>${r.zona || obtenerZonaTexto(r.lat, r.lon)}</td>
       <td>${r.nombre || "-"}</td>
 
       <td>
@@ -1599,33 +1642,34 @@ setInterval(() => {
 
 // 	VER VIDEO
 function verVideo(url) {
-  const modal = document.getElementById('modalMedia');
-  const contenido = document.getElementById('contenidoModal');
+  const visor = document.getElementById('visorImagen');
+  const contenido = document.getElementById('contenidoVisor');
 
   contenido.innerHTML = `
-    <video controls style="max-width:100%; max-height:80vh;">
-      <source src="${url}" type="video/mp4">
+    <span class="cerrar" onclick="cerrarVisor()">✖</span>
+    <video controls autoplay>
+      <source src="${url}">
     </video>
   `;
-  modal.style.display = 'flex';
+
+  visor.style.display = 'flex';
 }
 
 // REPRODUCIR AUDIO
 function reproducirAudio(url) {
-  const modal = document.getElementById('modalMedia');
-  const contenido = document.getElementById('contenidoModal');
+  const visor = document.getElementById('visorImagen');
+  const contenido = document.getElementById('contenidoVisor');
 
   contenido.innerHTML = `
-    <div style="background:white; padding:30px; border-radius:15px; text-align:center;">
-      <h3 style="margin-bottom:20px;">🔊 Audio del Reporte</h3>
-      <audio controls autoplay style="width:100%; max-width:400px;">
-        <source src="${url}" type="audio/mpeg">
-        <source src="${url}" type="audio/ogg">
-        Tu navegador no soporta audio.
+    <span class="cerrar" onclick="cerrarVisor()">✖</span>
+    <div style="background:white; padding:25px; border-radius:15px;">
+      <audio controls autoplay style="width:300px;">
+        <source src="${url}">
       </audio>
     </div>
   `;
-  modal.style.display = 'flex';
+
+  visor.style.display = 'flex';
 }
 
 function cerrarModal() {
@@ -1668,7 +1712,7 @@ function exportarExcel() {
 
     const nombre = r.nombre || "Sin nombre";
 
-    csv += `${fecha};${hora};${r.tipo_reporte};${r.descripcion};${nombre};${r.telefono};${r.urgencia};${r.estado};${r.lat};${r.lon}\n`;
+    csv += `${fecha};${hora};${r.categoria};${r.descripcion};${nombre};${r.telefono};${r.urgencia};${r.estado};${r.lat};${r.lon}\n`;
   });
 
   const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
@@ -1741,14 +1785,70 @@ function irASlide(index) {
 
 function abrirImagen(url) {
   const visor = document.getElementById('visorImagen');
-  const img = document.getElementById('imagenGrande');
+  const contenido = document.getElementById('contenidoVisor');
 
-  img.src = url;
+  contenido.innerHTML = `
+    <span class="cerrar" onclick="cerrarVisor()">✖</span>
+    <img id="imgZoom" src="${url}">
+  `;
+
   visor.style.display = 'flex';
+
+  const img = document.getElementById("imgZoom");
+
+  let scale = 1;
+  let posX = 0;
+  let posY = 0;
+  let isDragging = false;
+  let startX, startY;
+
+  // 🎯 ZOOM con rueda
+  img.onwheel = function(e) {
+    e.preventDefault();
+
+    const zoomFactor = e.deltaY > 0 ? 0.95 : 1.05; // 👈 suave tipo Google Maps
+scale *= zoomFactor;
+    scale = Math.min(Math.max(1, scale), 5); // min 1x max 5x
+
+    img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+  };
+
+  // 🎯 CLICK + ARRASTRAR
+  img.onmousedown = function(e) {
+    isDragging = true;
+    startX = e.clientX - posX;
+    startY = e.clientY - posY;
+    img.style.cursor = "grabbing";
+  };
+
+  document.onmousemove = function(e) {
+    if (!isDragging) return;
+
+    posX = e.clientX - startX;
+    posY = e.clientY - startY;
+
+    img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+  };
+
+  document.onmouseup = function() {
+    isDragging = false;
+    img.style.cursor = "grab";
+  };
+
+  // 👉 cerrar haciendo click fuera
+  visor.onclick = function(e) {
+    if (e.target.id === "visorImagen") {
+      cerrarVisor();
+    }
+  };
 }
 
 function cerrarVisor() {
-  document.getElementById('visorImagen').style.display = 'none';
+  const visor = document.getElementById('visorImagen');
+  const contenido = document.getElementById('contenidoVisor');
+
+  visor.style.display = 'none';
+  contenido.innerHTML = "";
 }
 
 
@@ -1756,38 +1856,21 @@ function toggleDescripcion(el) {
   el.classList.toggle("desc-expandida");
 }
 
+function obtenerZonaTexto(lat, lon) {
+  if (!lat || !lon) return "-";
+
+  if (lat < -29.11 && lon < -59.65) return "Barrio Centro";
+  if (lat < -29.12) return "Zona Sur";
+  return "Avellaneda";
+}
+
 </script>
 
 <!-- MODAL FOTO / VIDEO -->
-<div id="modalMedia" style="
-  display:none;
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.8);
-  justify-content:center;
-  align-items:center;
-  z-index:9999;
-">
-  <div style="position:relative; max-width:90%; max-height:90%;">
-    <span onclick="cerrarModal()" style="
-      position:absolute;
-      top:-30px;
-      right:0;
-      color:white;
-      font-size:30px;
-      cursor:pointer;
-    ">✖</span>
 
-    <div id="contenidoModal"></div>
-  </div>
-</div>
 
 <div id="visorImagen" class="visor-modal">
-  <span class="cerrar" onclick="cerrarVisor()">✖</span>
-  <img id="imagenGrande">
+  <div id="contenidoVisor"></div>
 </div>
 
 </body>

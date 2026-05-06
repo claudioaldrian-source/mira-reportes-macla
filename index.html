@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Reporte Ciudadano MIA</title>
+  <title>Reporte Ciudadano MIRA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 
@@ -483,7 +483,7 @@
 
 <div class="header">
 
-  <img src="logo-mia.png" class="logo2">
+  <img src="logo-mira.png" class="logo2">
 
   <div class="titulo-principal">
     <span class="letra m">M</span>
@@ -840,7 +840,7 @@ const { data, error } = await supabaseClient
   .from('reportes_mira')
   .insert([
     {
-      tipo_reporte: document.getElementById('tipoReporte').value,
+      categoria: document.getElementById('tipoReporte').value,
       descripcion: document.getElementById('descripcion').value,
       nombre: document.getElementById('nombre').value || null,
       telefono: document.getElementById('telefono').value || null,
