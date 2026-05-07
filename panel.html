@@ -1262,6 +1262,7 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
   const password = document.getElementById('passwordInput').value;
   
   if (password === PASSWORD_CORRECTA) {
+sonarBeep();
     sessionStorage.setItem('reportemira_logged_in', 'true');
     mostrarPanel();
   } else {
@@ -1365,6 +1366,10 @@ function suscribirseACambios() {
       (payload) => {
 
         console.log('Cambio detectado:', payload);
+
+if (payload.eventType === 'INSERT') {
+  sonarBeep();
+}
 
         cargarReportes();
 
@@ -1948,7 +1953,7 @@ function sonarBeep() {
   }
 
   audioNotificacion = new Audio(
-    "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
+    "sonido.mp3"
   );
 
   audioNotificacion.volume = 1;
