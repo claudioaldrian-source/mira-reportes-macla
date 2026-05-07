@@ -982,8 +982,71 @@ function mostrarMensajeRecibido() {
   }, 5000); // 👈 ahora dura 5 segundos
 }
 
+function mostrarNotificacionEstado(
+  mensaje,
+  color = "#4CAF50"
+) {
+
+  const cartel =
+    document.createElement("div");
+
+  cartel.innerHTML = `
+    <div style="font-size:22px; margin-bottom:8px;">
+      🚨
+    </div>
+
+    <div>${mensaje}</div>
+  `;
+
+  cartel.style.position = "fixed";
+  cartel.style.top = "30%";
+  cartel.style.left = "50%";
+  cartel.style.transform =
+    "translate(-50%, -50%)";
+
+  cartel.style.background = color;
+  cartel.style.color = "white";
+
+  cartel.style.padding = "20px 30px";
+  cartel.style.borderRadius = "15px";
+
+  cartel.style.fontSize = "18px";
+  cartel.style.fontWeight = "bold";
+
+  cartel.style.boxShadow =
+    "0 8px 25px rgba(0,0,0,0.3)";
+
+  cartel.style.zIndex = "9999";
+  cartel.style.textAlign = "center";
+
+  document.body.appendChild(cartel);
+
+  // 🔊 sonido
+  const audio = new Audio(
+    "https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"
+  );
+
+  audio.volume = 1;
+
+  audio.play().catch(() => {});
+
+  setTimeout(() => {
+
+    cartel.style.opacity = "0";
+
+    cartel.style.transition =
+      "opacity 0.5s";
+
+    setTimeout(() => {
+      cartel.remove();
+    }, 500);
+
+  }, 6000);
+}
+
 supabaseClient
   .channel('realtime-reportes')
+
   .on(
     'postgres_changes',
     {
@@ -991,27 +1054,51 @@ supabaseClient
       schema: 'public',
       table: 'reportes_mira'
     },
+
     (payload) => {
 
-  const miId = localStorage.getItem("miReporteId");
+      const miId =
+        localStorage.getItem("miReporteId");
 
-  console.log("Mi ID:", miId);
-  console.log("ID que cambió:", payload.new.id);
-
-  // 👉 SI NO ES MI REPORTE → NO HACE NADA
+      // 👇 si no es mi reporte
       if (!miId || payload.new.id != miId) return;
 
-  const nuevoEstado = payload.new.estado;
+      const nuevoEstado =
+        payload.new.estado;
 
-  console.log("Estado recibido:", nuevoEstado);
+      console.log(
+        "Estado recibido:",
+        nuevoEstado
+      );
 
-  // 🔥 ESTA ES LA CLAVE
+      // ============================================
+      // EN PROCESO
+      // ============================================
+
       if (nuevoEstado === 'en-proceso') {
-        mostrarMensajeRecibido();
+
+        mostrarNotificacionEstado(
+          "📩 Tu reporte fue recibido y está en proceso",
+          "#FF9800"
+        );
+      }
+
+      // ============================================
+      // COMPLETADO
+      // ============================================
+
+      if (nuevoEstado === 'completado') {
+
+        mostrarNotificacionEstado(
+          "✅ Tu reporte fue resuelto/completado",
+          "#4CAF50"
+        );
       }
 
     }
+
   )
+
   .subscribe();
 
 

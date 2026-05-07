@@ -1657,30 +1657,48 @@ function abrirMapa(lat, lon) {
 // ============================================
 async function cambiarEstado(id, nuevoEstado) {
 
-  console.log("CLICK botón:", id, nuevoEstado);
-
   try {
 
-    const { data, error } = await supabaseClient
+    let mensaje = "";
+
+    // ============================================
+    // MENSAJES AUTOMÁTICOS
+    // ============================================
+
+    if (nuevoEstado === 'en-proceso') {
+
+      mensaje =
+        '✅ Tu reporte fue recibido y está siendo procesado.';
+
+    }
+
+    if (nuevoEstado === 'completado') {
+
+      mensaje =
+        '✔️ Tu reporte fue marcado como completado. Gracias por colaborar.';
+    }
+
+    const { error } = await supabaseClient
       .from('reportes_mira')
       .update({
-        estado: nuevoEstado
+        estado: nuevoEstado,
+        mensaje_admin: mensaje,
+        leido_usuario: false
       })
-      .eq('id', id)
-      .select();
-
-    console.log("RESPUESTA:", data, error);
+      .eq('id', id);
 
     if (error) throw error;
 
-    // 🔄 recargar tabla
     cargarReportes();
 
   } catch (error) {
 
-    console.error("ERROR UPDATE:", error);
+    console.error(error);
 
-    alert('Error al actualizar estado: ' + error.message);
+    alert(
+      'Error al actualizar estado: ' +
+      error.message
+    );
   }
 }
 
@@ -1919,9 +1937,34 @@ function obtenerZonaTexto(lat, lon) {
   return "Avellaneda";
 }
 
+let audioNotificacion = null;
+
 function sonarBeep() {
-  const audio = new Audio("https://www.soundjay.com/buttons/sounds/beep-01a.mp3");
-  audio.play();
+
+  // evita sonidos duplicados
+  if (audioNotificacion) {
+    audioNotificacion.pause();
+    audioNotificacion.currentTime = 0;
+  }
+
+  audioNotificacion = new Audio(
+    "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
+  );
+
+  audioNotificacion.volume = 1;
+
+  audioNotificacion.play().catch(err => {
+    console.log("Audio bloqueado:", err);
+  });
+
+  // vibración visual
+  document.body.style.transition = "background 0.2s";
+
+  document.body.style.background = "#ffe5e5";
+
+  setTimeout(() => {
+    document.body.style.background = "#f5f5f5";
+  }, 250);
 }
 
 </script>
