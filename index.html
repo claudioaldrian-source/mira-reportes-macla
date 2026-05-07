@@ -1044,6 +1044,8 @@ function mostrarNotificacionEstado(
   }, 6000);
 }
 
+console.log("INICIANDO REALTIME...");
+
 supabaseClient
   .channel('realtime-reportes')
 
@@ -1060,8 +1062,15 @@ supabaseClient
       const miId =
         localStorage.getItem("miReporteId");
 
+console.log("REALTIME FUNCIONANDO");
+console.log(payload);
+
       // 👇 si no es mi reporte
-      if (!miId || payload.new.id != miId) return;
+  console.log("Mi ID:", miId);
+  console.log("ID UPDATE:", payload.new.id);
+
+// PRUEBA
+ if (!miId || payload.new.id != miId) return;
 
       const nuevoEstado =
         payload.new.estado;
@@ -1099,7 +1108,11 @@ supabaseClient
 
   )
 
-  .subscribe();
+  .subscribe((status) => {
+
+  console.log("ESTADO REALTIME:", status);
+
+});
 
 
 
