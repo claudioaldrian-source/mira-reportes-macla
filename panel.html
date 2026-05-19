@@ -1733,14 +1733,15 @@ async function cambiarEstado(id, nuevoEstado) {
         '✔️ Tu reporte fue marcado como completado. Gracias por colaborar.';
     }
 
-    const { error } = await supabaseClient
+    const { data, error } = await supabaseClient
       .from('reportes_mira')
       .update({
         estado: nuevoEstado,
         mensaje_admin: mensaje,
         leido_usuario: false
       })
-      .eq('id', id);
+      .eq('id', id)
+.select();
 
     if (error) throw error;
 

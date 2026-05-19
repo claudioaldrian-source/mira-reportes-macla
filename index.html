@@ -948,38 +948,50 @@ async function grabarAudio() {
   }
 }
 
-function mostrarMensajeRecibido() {
+function mostrarMensajeRecibido(
+  mensaje = "📩 Tu reporte fue recibido",
+  color = "#4CAF50"
+) {
+
   const cartel = document.createElement("div");
 
   cartel.innerHTML = `
     <div style="font-size:22px; margin-bottom:5px;">✅</div>
-    <div>Tu reporte fue Recibido</div>
+    <div>${mensaje}</div>
   `;
 
   cartel.style.position = "fixed";
   cartel.style.top = "30%";
   cartel.style.left = "50%";
   cartel.style.transform = "translate(-50%, -50%)";
-  cartel.style.background = "#4CAF50";
+
+  cartel.style.background = color;
+
   cartel.style.color = "white";
   cartel.style.padding = "20px 30px";
   cartel.style.borderRadius = "15px";
+
   cartel.style.fontSize = "18px";
   cartel.style.fontWeight = "bold";
-  cartel.style.boxShadow = "0 8px 25px rgba(0,0,0,0.3)";
+
+  cartel.style.boxShadow =
+    "0 8px 25px rgba(0,0,0,0.3)";
+
   cartel.style.zIndex = "9999";
   cartel.style.textAlign = "center";
 
   document.body.appendChild(cartel);
 
   setTimeout(() => {
+
     cartel.style.opacity = "0";
     cartel.style.transition = "opacity 0.5s";
-    
+
     setTimeout(() => {
       cartel.remove();
     }, 500);
-  }, 5000); // 👈 ahora dura 5 segundos
+
+  }, 5000);
 }
 
 function mostrarNotificacionEstado(
@@ -1047,7 +1059,7 @@ function mostrarNotificacionEstado(
 console.log("INICIANDO REALTIME...");
 
 supabaseClient
-  .channel('realtime-reportes')
+  .channel('realtime-channel')
 
   .on(
     'postgres_changes',
@@ -1062,12 +1074,9 @@ supabaseClient
       const miId =
         localStorage.getItem("miReporteId");
 
-console.log("REALTIME FUNCIONANDO");
-console.log(payload);
-
       // 👇 si no es mi reporte
   console.log("Mi ID:", miId);
-  console.log("ID UPDATE:", payload.new.id);
+  console.log("ID que cambió:", payload.new.id);
 
 // PRUEBA
  if (!miId || payload.new.id != miId) return;
@@ -1077,8 +1086,9 @@ console.log(payload);
 
       console.log(
         "Estado recibido:",
-        nuevoEstado
-      );
+        nuevoEstado);
+
+console.log("UPDATE RECIBIDO", payload);
 
       // ============================================
       // EN PROCESO
@@ -1086,35 +1096,15 @@ console.log(payload);
 
       if (nuevoEstado === 'en-proceso') {
 
-        mostrarNotificacionEstado(
+        mostrarMensajeRecibido(
           "📩 Tu reporte fue recibido y está en proceso",
           "#FF9800"
         );
       }
-
-      // ============================================
-      // COMPLETADO
-      // ============================================
-
-      if (nuevoEstado === 'completado') {
-
-        mostrarNotificacionEstado(
-          "✅ Tu reporte fue resuelto/completado",
-          "#4CAF50"
-        );
-      }
-
-    }
-
+  }
   )
 
-  .subscribe((status) => {
-
-  console.log("ESTADO REALTIME:", status);
-
-});
-
-
+  .subscribe();
 
 </script>
 
